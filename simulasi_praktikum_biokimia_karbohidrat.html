@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulasi Praktikum Biokimia Karbohidrat</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .transition-color { transition: background-color 1.5s ease, transform 0.5s ease; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <header class="bg-emerald-700 text-white shadow-md py-6 px-4 md:px-8">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold tracking-tight">Virtual Lab: Biokimia Karbohidrat</h1>
+                <p class="text-emerald-100 text-sm mt-1">Simulasi interaktif uji kualitatif karbohidrat untuk mahasiswa</p>
+            </div>
+            <div class="mt-4 md:mt-0 bg-emerald-800 px-4 py-2 rounded-xl text-xs font-medium border border-emerald-600">
+                Status: <span id="lab-status" class="text-emerald-300 font-bold">Siap Praktikum</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-6xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left Panel: Module Selection & Instructions -->
+        <div class="lg:col-span-1 space-y-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                <h2 class="text-lg font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                    Pilih Modul Uji
+                </h2>
+                <div class="space-y-2">
+                    <button onclick="switchTest('benedict')" id="btn-benedict" class="w-full text-left px-4 py-3 rounded-xl font-medium text-sm transition-all bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
+                        1. Uji Benedict (Gula Pereduksi)
+                    </button>
+                    <button onclick="switchTest('iodine')" id="btn-iodine" class="w-full text-left px-4 py-3 rounded-xl font-medium text-sm transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50">
+                        2. Uji Iodium (Karbohidrat Kompleks)
+                    </button>
+                    <button onclick="switchTest('molisch')" id="btn-molisch" class="w-full text-left px-4 py-3 rounded-xl font-medium text-sm transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50">
+                        3. Uji Molisch (Cincin Karbohidrat)
+                    </button>
+                    <button onclick="switchTest('barfoed')" id="btn-barfoed" class="w-full text-left px-4 py-3 rounded-xl font-medium text-sm transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50">
+                        4. Uji Barfoed (Mono vs Disakarida)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sample Selection Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                <h3 class="text-md font-semibold text-slate-700 mb-3">Pilih Sampel Uji</h3>
+                <div class="grid grid-cols-2 gap-2" id="sample-buttons">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+            <!-- Theory Guide Card -->
+            <div class="bg-emerald-50 rounded-2xl border border-emerald-200 p-5 text-emerald-900">
+                <h3 class="text-md font-semibold mb-2 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Panduan & Teori Singkat
+                </h3>
+                <p id="theory-text" class="text-xs leading-relaxed text-emerald-800">
+                    Pilih salah satu uji dan sampel untuk melihat prosedur serta dasar teori biokimianya.
+                </p>
+            </div>
+        </div>
+
+        <!-- Right Panel: Interactive Lab Bench & Simulation Workspace -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col items-center justify-between min-h-[480px]">
+                
+                <!-- Workspace Header Info -->
+                <div class="w-full flex justify-between items-center border-b border-slate-100 pb-4 mb-6">
+                    <div>
+                        <h3 id="active-test-title" class="text-lg font-bold text-slate-800">Uji Benedict</h3>
+                        <p id="active-sample-desc" class="text-xs text-slate-500">Sampel aktif: <span id="current-sample-name" class="font-semibold text-emerald-600">Pati</span></p>
+                    </div>
+                    <div id="stopwatch-container" class="hidden items-center gap-2 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl text-amber-800 text-xs font-mono">
+                        <svg class="w-4 h-4 animate-spin text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Waktu: <span id="timer-display" class="font-bold text-sm">00:00</span>
+                    </div>
+                </div>
+
+                <!-- Realistic Glassware Stage -->
+                <div class="relative w-full flex-grow flex flex-col items-center justify-center my-6">
+                    
+                    <!-- Water Bath Heat Animation Effect -->
+                    <div id="water-bath-effect" class="absolute w-40 h-32 bg-sky-100 rounded-t-3xl border-2 border-sky-300 opacity-0 transition-opacity duration-500 flex flex-col justify-end items-center pb-2 overflow-hidden">
+                        <div class="absolute inset-0 bg-sky-200/40 animate-pulse"></div>
+                        <span class="text-[10px] text-sky-700 font-semibold relative z-10">Penangas Air (100°C)</span>
+                    </div>
+
+                    <!-- Test Tube Element -->
+                    <div class="relative z-20 flex flex-col items-center">
+                        <!-- Tube Top Opening -->
+                        <div class="w-12 h-3 bg-slate-200 rounded-t-md border border-slate-300"></div>
+                        <!-- Glass Tube Body -->
+                        <div class="w-10 h-44 bg-slate-100/80 backdrop-blur-sm border-2 border-slate-300 rounded-b-xl overflow-hidden flex flex-col justify-end shadow-inner relative">
+                            
+                            <!-- Molisch Ring Layer (Hidden by default) -->
+                            <div id="molisch-ring" class="absolute w-full h-2 bg-purple-600 opacity-0 transition-opacity duration-1000 top-1/2 -translate-y-1/2"></div>
+                            
+                            <!-- Liquid Content inside Tube -->
+                            <div id="tube-liquid" class="w-full h-32 bg-blue-500 transition-color relative flex flex-col justify-end items-center">
+                                <!-- Precipitate / Sediment layer -->
+                                <div id="tube-precipitate" class="w-full h-0 bg-red-600 opacity-90 transition-all duration-1000"></div>
+                            </div>
+                        </div>
+                        <!-- Stand Label -->
+                        <div class="mt-2 text-xs font-semibold text-slate-600 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+                            Tabung Reaksi #1
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step-by-Step Action Controls -->
+                <div class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col gap-3">
+                    <div class="flex justify-between items-center">
+                        <span id="step-instruction" class="text-xs font-medium text-slate-700">Langkah 1: Masukkan larutan sampel ke dalam tabung reaksi.</span>
+                        <span id="step-badge" class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-semibold">Tahap 1 / 3</span>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-2">
+                        <button id="btn-step-1" onclick="executeStep(1)" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 px-4 rounded-xl text-xs transition shadow-sm">
+                            1. Masukkan Sampel
+                        </button>
+                        <button id="btn-step-2" onclick="executeStep(2)" disabled class="flex-1 bg-slate-200 text-slate-400 font-medium py-2.5 px-4 rounded-xl text-xs transition cursor-not-allowed">
+                            2. Tambah Reagen
+                        </button>
+                        <button id="btn-step-3" onclick="executeStep(3)" disabled class="flex-1 bg-slate-200 text-slate-400 font-medium py-2.5 px-4 rounded-xl text-xs transition cursor-not-allowed">
+                            3. Panaskan / Reaksi
+                        </button>
+                        <button onclick="resetExperiment()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-2.5 px-3 rounded-xl text-xs transition">
+                            Reset
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Result Observation Card -->
+            <div id="result-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 hidden">
+                <h4 class="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Hasil Pengamatan & Analisis Biokimia
+                </h4>
+                <p id="result-description" class="text-xs text-slate-600 leading-relaxed"></p>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="mt-auto py-4 text-center text-xs text-slate-400 border-t border-slate-200 bg-white">
+        Simulasi Praktikum Biokimia Karbohidrat &bull; Dibuat untuk Pembelajaran Mahasiswa
+    </footer>
+
+    <script>
+        // Data Sampel & Karakteristik Uji
+        const samples = [
+            { id: 'glukosa', name: 'Glukosa', type: 'Monosakarida', group: 'reducing' },
+            { id: 'fruktosa', name: 'Fruktosa', type: 'Monosakarida', group: 'reducing' },
+            { id: 'laktosa', name: 'Laktosa', type: 'Disakarida', group: 'reducing' },
+            { id: 'sukrosa', name: 'Sukrosa', type: 'Disakarida', group: 'non-reducing' },
+            { id: 'pati', name: 'Pati (Amilum)', type: 'Polisakarida', group: 'complex' },
+            { id: 'pir', name: 'Ekstrak Buah Pir', type: 'Campuran (Mono/Fruktosa)', group: 'reducing' }
+        ];
+
+        let currentTest = 'benedict';
+        let currentSample = 'pati';
+        let currentStep = 1;
+        let timerInterval = null;
+        let secondsElapsed = 0;
+
+        // Inisialisasi Tampilan Tombol Sampel
+        function renderSampleButtons() {
+            const container = document.getElementById('sample-buttons');
+            container.innerHTML = '';
+            samples.forEach(s => {
+                const btn = document.createElement('button');
+                btn.className = `p-2.5 rounded-xl text-xs font-medium border text-left transition-all ${s.id === currentSample ? 'bg-emerald-50 text-emerald-800 border-emerald-300 font-semibold shadow-xs' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`;
+                btn.innerHTML = `${s.name} <span class='block text-[9px] text-slate-400 font-normal'>${s.type}</span>`;
+                btn.onclick = () => {
+                    currentSample = s.id;
+                    resetExperiment();
+                    renderSampleButtons();
+                    updateUIContent();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        // Ganti Modul Pengujian
+        function switchTest(testName) {
+            currentTest = testName;
+            currentStep = 1;
+            resetExperiment();
+
+            // Style Tab Aktif
+            ['benedict', 'iodine', 'molisch', 'barfoed'].forEach(t => {
+                const btn = document.getElementById(`btn-${t}`);
+                if (t === testName) {
+                    btn.className = "w-full text-left px-4 py-3 rounded-xl font-medium text-sm transition-all bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm";
+                } else {
+                    btn.className = "w-full text-left px-4 py-3 rounded-xl font-medium text-sm transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50";
+                }
+            });
+
+            updateUIContent();
+        }
+
+        // Perbarui Judul, Teori, dan Instruksi Langkah
+        function updateUIContent() {
+            const sampleObj = samples.find(s => s.id === currentSample);
+            document.getElementById('current-sample-name').innerText = sampleObj.name;
+
+            const titleEl = document.getElementById('active-test-title');
+            const theoryEl = document.getElementById('theory-text');
+            const stepInstEl = document.getElementById('step-instruction');
+
+            if (currentTest === 'benedict') {
+                titleEl.innerText = "Uji Kualitatif Gula Pereduksi (Pereaksi Benedict)";
+                theoryEl.innerText = "Pereaksi Benedict mengandung ion Cu²⁺ dalam suasana basa. Gula pereduksi mereduksi Cu²⁺ menjadi Cu⁺ yang mengendap sebagai Cu₂O (merah bata/kuning/hijau tergantung konsentrasi). Sukrosa tidak bereaksi karena tidak memiliki gugus aldehid/keton bebas.";
+                stepInstEl.innerText = "Langkah 1: Masukkan 8 tetes larutan " + sampleObj.name + " ke dalam tabung reaksi.";
+            } else if (currentTest === 'iodine') {
+                titleEl.innerText = "Uji Karbohidrat Kompleks (Pereaksi Iodium)";
+                theoryEl.innerText = "Pati memiliki struktur heliks (amilosa). Molekul iodium masuk ke dalam spiral struktur heliks tersebut membentuk kompleks biru tua atau hitam pekat. Monosakarida dan disakarida tidak membentuk kompleks ini.";
+                stepInstEl.innerText = "Langkah 1: Teteskan 3 tetes larutan " + sampleObj.name + " ke dalam tabung reaksi.";
+            } else if (currentTest === 'molisch') {
+                titleEl.innerText = "Uji Umum Karbohidrat (Uji Molisch)";
+                theoryEl.innerText = "Karbohidrat oleh asam sulfat pekat akan mengalami dehidrasi membentuk furfural atau derivatnya (hidroksimetilfurfural) yang kemudian berkondensasi dengan alfa-naftol membentuk cincin berwarna ungu pada batas kedua cairan.";
+                stepInstEl.innerText = "Langkah 1: Masukkan 2 mL larutan " + sampleObj.name + " ke dalam tabung reaksi.";
+            } else if (currentTest === 'barfoed') {
+                titleEl.innerText = "Uji Pembeda Mono dan Disakarida (Uji Barfoed)";
+                theoryEl.innerText = "Pereaksi Barfoed menggunakan asam lemah tembaga asetat. Monosakarida mereduksi Cu²⁺ lebih cepat (< 5 menit) membentuk endapan merah bata, sedangkan disakarida bereaksi sangat lambat atau positif setelah > 5 menit pemanasan.";
+                stepInstEl.innerText = "Langkah 1: Masukkan 1 mL larutan " + sampleObj.name + " ke dalam tabung reaksi.";
+            }
+
+            document.getElementById('step-badge').innerText = `Tahap ${currentStep} / 3`;
+        }
+
+        // Jalankan Langkah Simulasi
+        function executeStep(stepNum) {
+            const liquid = document.getElementById('tube-liquid');
+            const precipitate = document.getElementById('tube-precipitate');
+            const ring = document.getElementById('molisch-ring');
+            const waterBath = document.getElementById('water-bath-effect');
+            const stopwatchBox = document.getElementById('stopwatch-container');
+            const resultCard = document.getElementById('result-card');
+            const stepInstEl = document.getElementById('step-instruction');
+
+            const btn1 = document.getElementById('btn-step-1');
+            const btn2 = document.getElementById('btn-step-2');
+            const btn3 = document.getElementById('btn-step-3');
+
+            if (stepNum === 1) {
+                currentStep = 2;
+                document.getElementById('step-badge').innerText = `Tahap 2 / 3`;
+                stepInstEl.innerText = "Langkah 2: Tambahkan pereaksi ke dalam tabung reaksi lalu homogenkan.";
+                
+                // Set warna awal cairan
+                if (currentTest === 'benedict') liquid.className = "w-full h-32 bg-sky-400 transition-color relative flex flex-col justify-end items-center";
+                if (currentTest === 'iodine') liquid.className = "w-full h-32 bg-amber-100 transition-color relative flex flex-col justify-end items-center";
+                if (currentTest === 'molisch') liquid.className = "w-full h-32 bg-amber-50 transition-color relative flex flex-col justify-end items-center";
+                if (currentTest === 'barfoed') liquid.className = "w-full h-32 bg-sky-200 transition-color relative flex flex-col justify-end items-center";
+
+                btn1.className = "flex-1 bg-slate-200 text-slate-400 font-medium py-2.5 px-4 rounded-xl text-xs cursor-not-allowed";
+                btn1.disabled = true;
+                btn2.className = "flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 px-4 rounded-xl text-xs transition shadow-sm cursor-pointer";
+                btn2.disabled = false;
+            } 
+            else if (stepNum === 2) {
+                currentStep = 3;
+                document.getElementById('step-badge').innerText = `Tahap 3 / 3`;
+                
+                if (currentTest === 'molisch') {
+                    stepInstEl.innerText = "Langkah 3: Alirkan asam sulfat pekat lewat dinding tabung secara perlahan.";
+                } else if (currentTest === 'barfoed') {
+                    stepInstEl.innerText = "Langkah 3: Masukkan ke penangas air mendidih dan amati stopwatch.";
+                    stopwatchBox.classList.remove('hidden');
+                    stopwatchBox.classList.add('flex');
+                    startBarfoedTimer();
+                } else {
+                    stepInstEl.innerText = "Langkah 3: Panaskan tabung pada air mendidih selama 3 menit.";
+                    waterBath.classList.remove('opacity-0');
+                }
+
+                btn2.className = "flex-1 bg-slate-200 text-slate-400 font-medium py-2.5 px-4 rounded-xl text-xs cursor-not-allowed";
+                btn2.disabled = true;
+                btn3.className = "flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 px-4 rounded-xl text-xs transition shadow-sm cursor-pointer";
+                btn3.disabled = false;
+            }
+            else if (stepNum === 3) {
+                btn3.className = "flex-1 bg-slate-200 text-slate-400 font-medium py-2.5 px-4 rounded-xl text-xs cursor-not-allowed";
+                btn3.disabled = true;
+                waterBath.classList.add('opacity-0');
+                if(timerInterval) clearInterval(timerInterval);
+
+                // Eksekusi Perubahan Warna Biokimia Nyata
+                applyBiochemicalResult(liquid, precipitate, ring, resultCard);
+                stepInstEl.innerText = "Praktik Selesai! Analisis hasil tertera di bawah.";
+            }
+        }
+
+        // Timer Stopwatch untuk Uji Barfoed
+        function startBarfoedTimer() {
+            secondsElapsed = 0;
+            const timerDisplay = document.getElementById('timer-display');
+            if(timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                secondsElapsed++;
+                let min = Math.floor(secondsElapsed / 60);
+                let sec = secondsElapsed % 60;
+                timerDisplay.innerText = `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        // Menentukan Hasil Reaksi Kimia & Warna
+        function applyBiochemicalResult(liquid, precipitate, ring, resultCard) {
+            resultCard.classList.remove('hidden');
+            let resText = "";
+
+            if (currentTest === 'benedict') {
+                if (currentSample === 'glukosa' || currentSample === 'fruktosa' || currentSample === 'pir') {
+                    liquid.className = "w-full h-32 bg-orange-500 transition-color relative flex flex-col justify-end items-center";
+                    precipitate.style.height = "25%";
+                    resText = "Hasil Positif Kuat (++): Terbentuk endapan merah bata (Cu₂O). Sampel mengandung gula pereduksi tinggi.";
+                } else if (currentSample === 'laktosa') {
+                    liquid.className = "w-full h-32 bg-amber-400 transition-color relative flex flex-col justify-end items-center";
+                    precipitate.style.height = "15%";
+                    resText = "Hasil Positif Lemah (+): Larutan berubah menjadi kuning/hijau kekuningan. Laktosa adalah disakarida pereduksi.";
+                } else {
+                    liquid.className = "w-full h-32 bg-blue-500 transition-color relative flex flex-col justify-end items-center";
+                    resText = "Hasil Negatif (-): Warna larutan tetap biru jernih tanpa endapan. Sukrosa/pati bukan gula pereduksi langsung.";
+                }
+            } 
+            else if (currentTest === 'iodine') {
+                if (currentSample === 'pati') {
+                    liquid.className = "w-full h-32 bg-indigo-950 transition-color relative flex flex-col justify-end items-center";
+                    resText = "Hasil Positif (++): Larutan berubah menjadi biru tua/hitam pekat akibat iodium terjebak dalam struktur spiral amilosa pati.";
+                } else {
+                    liquid.className = "w-full h-32 bg-amber-100 transition-color relative flex flex-col justify-end items-center";
+                    resText = "Hasil Negatif (-): Warna kuning/kecoklatan reagen iodine tidak berubah. Sampel bukan polisakarida jenis pati.";
+                }
+            }
+            else if (currentTest === 'molisch') {
+                ring.style.opacity = "1";
+                resText = "Hasil Positif (+): Terbentuk dua lapisan cairan dengan cincin berwarna ungu/violet di batas pertemuan larutan dan asam sulfat. Menandakan positif adanya karbohidrat umum.";
+            }
+            else if (currentTest === 'barfoed') {
+                if (currentSample === 'glukosa' || currentSample === 'fruktosa' || currentSample === 'pir') {
+                    liquid.className = "w-full h-32 bg-sky-200 transition-color relative flex flex-col justify-end items-center";
+                    precipitate.style.height = "30%";
+                    resText = "Hasil Positif Cepat (< 5 menit): Terbentuk endapan merah bata sebelum 5 menit. Menunjukkan sampel adalah Monosakarida.";
+                } else {
+                    liquid.className = "w-full h-32 bg-sky-200 transition-color relative flex flex-col justify-end items-center";
+                    precipitate.style.height = "5%";
+                    resText = "Hasil Positif Lambat / Negatif dalam 5 menit (> 5 menit atau tidak ada endapan signifikan): Menunjukkan sampel adalah Disakarida (seperti laktosa/sukrosa).";
+                }
+            }
+
+            document.getElementById('result-description').innerText = resText;
+        }
+
+        // Reset Eksperimen
+        function resetExperiment() {
+            currentStep = 1;
+            if(timerInterval) clearInterval(timerInterval);
+            document.getElementById('stopwatch-container').classList.add('hidden');
+            document.getElementById('water-bath-effect').classList.add('opacity-0');
+            document.getElementById('result-card').classList.add('hidden');
+            document.getElementById('tube-precipitate').style.height = "0%";
+            document.getElementById('molisch-ring').style.opacity = "0";
+
+            const liquid = document.getElementById('tube-liquid');
+            liquid.className = "w-full h-32 bg-slate-200 transition-color relative flex flex-col justify-end items-center";
+
+            const btn1 = document.getElementById('btn-step-1');
+            const btn2 = document.getElementById('btn-step-2');
+            const btn3 = document.getElementById('btn-step-3');
+
+            btn1.className = "flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 px-4 rounded-xl text-xs transition shadow-sm cursor-pointer";
+            btn1.disabled = false;
+            btn2.className = "flex-1 bg-slate-200 text-slate-400 font-medium py-2.5 px-4 rounded-xl text-xs cursor-not-allowed";
+            btn2.disabled = true;
+            btn3.className = "flex-1 bg-slate-200 text-slate-400 font-medium py-2.5 px-4 rounded-xl text-xs cursor-not-allowed";
+            btn3.disabled = true;
+
+            updateUIContent();
+        }
+
+        // Jalankan saat halaman dimuat
+        window.onload = function() {
+            renderSampleButtons();
+            updateUIContent();
+        };
+    </script>
+</body>
+</html>
